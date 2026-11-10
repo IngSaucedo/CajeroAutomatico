@@ -1,0 +1,19 @@
+## Uso de `unshift()` en el Cajero Automático
+
+En este proyecto se usa `unshift()` para mantener el **historial de operaciones ordenado de la más reciente a la más antigua**.
+
+Cuando el usuario retira o deposita, la nueva operación se inserta al inicio del array:
+
+```js
+const registrarOperacion = (tipo, monto) => {
+  estado.historial.unshift({
+    tipo,
+    monto,
+    saldoDespues: estado.saldo,
+    fecha: new Date().toISOString()
+  });
+
+  // Se conservan solo las últimas 5 operaciones
+  estado.historial = estado.historial.slice(0, MAX_HISTORIAL);
+
+};
