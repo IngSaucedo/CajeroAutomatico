@@ -1,0 +1,538 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cajero Automático (MXN)</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            font-family: system-ui, sans-serif;
+            background: #0033A0;
+            color: #0b1a3a;
+        }
+
+        .cajero {
+            width: 100%;
+            max-width: 540px;
+            background: #FFF8D6;
+            border: 4px solid #FFD100;
+            border-radius: 24px;
+            padding: 38px;
+            box-shadow: 0 25px 60px -20px #000a;
+        }
+
+        .oculto {
+            display: none !important;
+        }
+
+        h1 {
+            font-size: 1.9rem;
+            margin: 0 0 22px;
+            text-align: center;
+            color: #0033A0;
+        }
+
+        h2 {
+            font-size: 1.15rem;
+            margin: 24px 0 14px;
+            color: #0033A0;
+        }
+
+        input {
+            width: 100%;
+            padding: 18px 20px;
+            margin-bottom: 18px;
+            border-radius: 14px;
+            border: 3px solid #0033A0;
+            background: #fff;
+            color: #0b1a3a;
+            font-size: 1.25rem;
+            font-family: inherit;
+            outline: none;
+        }
+
+            input:focus {
+                border-color: #FFD100;
+                box-shadow: 0 0 0 4px #FFD10055;
+            }
+
+        #entrada-pin {
+            text-align: center;
+            font-size: 2rem;
+            letter-spacing: .35em;
+        }
+
+        .boton {
+            width: 100%;
+            padding: 20px 16px;
+            border: none;
+            border-radius: 16px;
+            font-size: 1.15rem;
+            font-weight: 800;
+            font-family: inherit;
+            cursor: pointer;
+            background: #0033A0;
+            color: #FFD100;
+            transition: transform .12s, background .15s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            line-height: 1.1;
+        }
+
+            .boton .icono {
+                font-size: 2.2rem;
+                line-height: 1;
+            }
+
+            .boton:hover {
+                background: #002B7F;
+                transform: translateY(-2px);
+            }
+
+            .boton:active {
+                transform: scale(.97);
+            }
+
+            .boton.primario {
+                background: #FFD100;
+                color: #0033A0;
+            }
+
+                .boton.primario:hover {
+                    background: #FFC400;
+                }
+
+        .saldo {
+            padding: 28px 24px;
+            border-radius: 20px;
+            text-align: center;
+            background: linear-gradient(135deg, #0033A0, #0050D0);
+            color: #FFD100;
+            border: 4px solid #FFD100;
+        }
+
+            .saldo span {
+                font-size: .95rem;
+                text-transform: uppercase;
+                letter-spacing: .1em;
+                color: #FFD100;
+                opacity: .9;
+            }
+
+            .saldo strong {
+                display: block;
+                font-size: 2.8rem;
+                margin-top: 8px;
+                color: #fff;
+            }
+
+        .barra-superior {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            gap: 12px;
+        }
+
+            .barra-superior h1 {
+                margin: 0;
+                font-size: 1.5rem;
+                text-align: left;
+            }
+
+        .boton-salir {
+            background: #0033A0;
+            border: 2px solid #0033A0;
+            color: #FFD100;
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+            transition: background .15s;
+        }
+
+            .boton-salir:hover {
+                background: #002B7F;
+            }
+
+        .acciones {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 24px;
+        }
+
+            .acciones .ancho {
+                grid-column: 1 / -1;
+            }
+
+        .mensaje {
+            display: none;
+            margin-top: 18px;
+            padding: 16px 18px;
+            border-radius: 14px;
+            font-size: 1.05rem;
+            font-weight: 600;
+        }
+
+            .mensaje.visible {
+                display: block;
+            }
+
+            .mensaje.error {
+                background: #B91C1C22;
+                color: #B91C1C;
+                border: 2px solid #B91C1C;
+            }
+
+            .mensaje.exito {
+                background: #15803D22;
+                color: #15803D;
+                border: 2px solid #15803D;
+            }
+
+        .error-texto {
+            min-height: 1.4em;
+            color: #B91C1C;
+            font-size: 1rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 280px;
+            overflow-y: auto;
+        }
+
+        li.operacion {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            border-radius: 14px;
+            background: #fff;
+            border: 2px solid #0033A0;
+            font-size: 1.05rem;
+        }
+
+        .operacion small {
+            display: block;
+            color: #5a6b8c;
+            font-size: .85rem;
+            margin-top: 2px;
+        }
+
+        .retiro {
+            color: #B91C1C;
+            font-weight: 800;
+        }
+
+        .deposito {
+            color: #15803D;
+            font-weight: 800;
+        }
+
+        .vacio {
+            text-align: center;
+            color: #5a6b8c;
+            padding: 22px 0;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="cajero">
+
+        <section id="pantalla-login">
+            <h1>🏦 Cajero Automático</h1>
+            <input id="entrada-pin" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
+            <button id="boton-login" class="boton primario">
+                <span class="icono">🔓</span>
+                Ingresar
+            </button>
+            <p id="error-login" class="error-texto"></p>
+        </section>
+
+        <section id="pantalla-cajero" class="oculto">
+            <div class="barra-superior">
+                <h1>Mi cuenta</h1>
+                <button id="boton-cerrar-sesion" class="boton-salir">Cerrar sesión</button>
+            </div>
+
+            <div class="saldo">
+                <span>Saldo disponible</span>
+                <strong id="texto-saldo">$1,000.00 MXN</strong>
+            </div>
+
+            <div id="panel-operacion" class="oculto" style="margin-top:20px">
+                <input id="entrada-cantidad" type="number" min="0" step="0.01" placeholder="0.00" inputmode="decimal">
+                <button id="boton-confirmar" class="boton primario">
+                    <span class="icono">✅</span>
+                    Confirmar
+                </button>
+                <button id="boton-cancelar" class="boton" style="margin-top:12px">
+                    <span class="icono">✖️</span>
+                    Cancelar
+                </button>
+            </div>
+
+            <div class="acciones">
+                <button id="boton-retirar" class="boton">
+                    <span class="icono">💸</span>
+                    Retirar
+                </button>
+                <button id="boton-depositar" class="boton">
+                    <span class="icono">💰</span>
+                    Depositar
+                </button>
+                <button id="boton-historial" class="boton ancho">
+                    <span class="icono">🧾</span>
+                    Ver Historial
+                </button>
+            </div>
+
+            <p id="texto-mensaje" class="mensaje"></p>
+
+            <div id="panel-historial" class="oculto">
+                <h2>Últimas 5 operaciones</h2>
+                <ul id="lista-historial"></ul>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        "use strict";
+
+        // Declaración de constantes
+        const PIN_CORRECTO = "1234";
+        const SALDO_INICIAL = 1000;
+        const MAX_HISTORIAL = 5;
+        const CLAVE_ALMACEN = "cajero_mxn_v1";
+
+        const formatearPesos = cantidad => {
+            const signo = cantidad < 0 ? "-" : "";
+            const numero = Math.abs(Number(cantidad)).toFixed(2);
+            const [entero, decimales] = numero.split(".");
+            const enteroConComas = entero.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            return signo + "$" + enteroConComas + "." + decimales;
+        };
+        const redondear = cantidad => Math.round(cantidad * 100) / 100;
+        const formatearFecha = fechaISO => new Date(fechaISO).toLocaleString("es-MX", {
+            day: "2-digit", month: "2-digit", year: "numeric",
+            hour: "2-digit", minute: "2-digit", second: "2-digit"
+        });
+
+        // Inicio del login
+        const pantallaLogin = document.getElementById("pantalla-login");
+        const pantallaCajero = document.getElementById("pantalla-cajero");
+        const entradaPin = document.getElementById("entrada-pin");
+        const botonLogin = document.getElementById("boton-login");
+        const errorLogin = document.getElementById("error-login");
+        const botonCerrarSesion = document.getElementById("boton-cerrar-sesion");
+
+        const iniciarSesion = () => {
+            if (entradaPin.value.trim() === PIN_CORRECTO) {
+                errorLogin.textContent = "";
+                entradaPin.value = "";
+                pantallaLogin.classList.add("oculto");
+                pantallaCajero.classList.remove("oculto");
+                actualizarSaldo();
+                renderizarHistorial();
+            } else {
+                errorLogin.textContent = "PIN incorrecto. Inténtalo de nuevo.";
+                entradaPin.value = "";
+                entradaPin.focus();
+            }
+        };
+
+        const cerrarSesion = () => {
+            cerrarPanelOperacion();
+            panelHistorial.classList.add("oculto");
+            textoMensaje.className = "mensaje";
+            pantallaCajero.classList.add("oculto");
+            pantallaLogin.classList.remove("oculto");
+            entradaPin.value = "";
+            entradaPin.focus();
+        };
+
+        botonLogin.addEventListener("click", iniciarSesion);
+        botonCerrarSesion.addEventListener("click", cerrarSesion);
+
+        const textoSaldo = document.getElementById("texto-saldo");
+        const textoMensaje = document.getElementById("texto-mensaje");
+        const panelOperacion = document.getElementById("panel-operacion");
+        const entradaCantidad = document.getElementById("entrada-cantidad");
+        const botonConfirmar = document.getElementById("boton-confirmar");
+        const botonCancelar = document.getElementById("boton-cancelar");
+        const panelHistorial = document.getElementById("panel-historial");
+        const listaHistorial = document.getElementById("lista-historial");
+        const botonRetirar = document.getElementById("boton-retirar");
+        const botonDepositar = document.getElementById("boton-depositar");
+        const botonHistorial = document.getElementById("boton-historial");
+
+        const cargarEstado = () => {
+            try {
+                const guardado = localStorage.getItem(CLAVE_ALMACEN);
+                if (!guardado) return { saldo: SALDO_INICIAL, historial: [] };
+                const datos = JSON.parse(guardado);
+                return {
+                    saldo: Number.isFinite(+datos.saldo) ? +datos.saldo : SALDO_INICIAL,
+                    historial: Array.isArray(datos.historial)
+                        ? datos.historial.slice(0, MAX_HISTORIAL)
+                        : []
+                };
+            } catch (error) {
+                return { saldo: SALDO_INICIAL, historial: [] };
+            }
+        };
+
+        const guardarEstado = () =>
+            localStorage.setItem(CLAVE_ALMACEN, JSON.stringify(estado));
+
+        let estado = cargarEstado();
+        let operacionActual = null;
+        let temporizadorMensaje = null;
+
+        const actualizarSaldo = () => {
+            textoSaldo.textContent = formatearPesos(estado.saldo) + " MXN";
+        };
+
+        const mostrarMensaje = (texto, tipo) => {
+            clearTimeout(temporizadorMensaje);
+            textoMensaje.textContent = texto;
+            textoMensaje.className = "mensaje visible " + tipo;
+            temporizadorMensaje = setTimeout(() => {
+                textoMensaje.className = "mensaje";
+            }, 5000);
+        };
+
+        const renderizarHistorial = () => {
+            listaHistorial.innerHTML = "";
+            if (!estado.historial.length) {
+                listaHistorial.innerHTML = '<li class="vacio">Sin operaciones registradas.</li>';
+                return;
+            }
+            estado.historial.forEach(operacion => {
+                const esRetiro = operacion.tipo === "retiro";
+                const elementoLista = document.createElement("li");
+                elementoLista.className = "operacion";
+                elementoLista.innerHTML = `
+          <div>
+            ${esRetiro ? "Retiro" : "Depósito"}
+            <small>${formatearFecha(operacion.fecha)}</small>
+          </div>
+          <span class="${esRetiro ? "retiro" : "deposito"}">
+            ${esRetiro ? "−" : "+"}${formatearPesos(operacion.monto)}
+          </span>`;
+                listaHistorial.appendChild(elementoLista);
+            });
+        };
+
+        const abrirPanelOperacion = tipo => {
+            operacionActual = tipo;
+            entradaCantidad.value = "";
+            entradaCantidad.placeholder = tipo === "retiro"
+                ? "Cantidad a retirar"
+                : "Cantidad a depositar";
+            panelOperacion.classList.remove("oculto");
+            panelHistorial.classList.add("oculto");
+            textoMensaje.className = "mensaje";
+            entradaCantidad.focus();
+        };
+
+        const cerrarPanelOperacion = () => {
+            operacionActual = null;
+            entradaCantidad.value = "";
+            panelOperacion.classList.add("oculto");
+        };
+
+        const registrarOperacion = (tipo, monto) => {
+            estado.historial.unshift({
+                tipo,
+                monto,
+                saldoDespues: estado.saldo,
+                fecha: new Date().toISOString()
+            });
+            estado.historial = estado.historial.slice(0, MAX_HISTORIAL);
+        };
+
+        const confirmarOperacion = () => {
+            if (!operacionActual) return;
+            const monto = redondear(parseFloat(entradaCantidad.value));
+            if (!Number.isFinite(monto) || monto <= 0) {
+                return mostrarMensaje("Ingresa una cantidad válida mayor a cero.", "error");
+            }
+            if (operacionActual === "retiro") {
+                if (monto > estado.saldo) {
+                    return mostrarMensaje(
+                        `Fondos insuficientes. Tu saldo es ${formatearPesos(estado.saldo)}.`,
+                        "error"
+                    );
+                }
+                estado.saldo = redondear(estado.saldo - monto);
+                registrarOperacion("retiro", monto);
+                guardarEstado();
+                actualizarSaldo();
+                renderizarHistorial();
+                cerrarPanelOperacion();
+                mostrarMensaje(
+                    `Retiraste ${formatearPesos(monto)}. Saldo: ${formatearPesos(estado.saldo)}.`,
+                    "exito"
+                );
+            } else {
+                estado.saldo = redondear(estado.saldo + monto);
+                registrarOperacion("deposito", monto);
+                guardarEstado();
+                actualizarSaldo();
+                renderizarHistorial();
+                cerrarPanelOperacion();
+                mostrarMensaje(
+                    `Depositaste ${formatearPesos(monto)}. Saldo: ${formatearPesos(estado.saldo)}.`,
+                    "exito"
+                );
+            }
+        };
+
+        const alternarHistorial = () => {
+            cerrarPanelOperacion();
+            textoMensaje.className = "mensaje";
+            panelHistorial.classList.toggle("oculto");
+            if (!panelHistorial.classList.contains("oculto")) renderizarHistorial();
+        };
+
+        botonConfirmar.addEventListener("click", confirmarOperacion);
+        botonCancelar.addEventListener("click", cerrarPanelOperacion);
+        botonRetirar.addEventListener("click", () => abrirPanelOperacion("retiro"));
+        botonDepositar.addEventListener("click", () => abrirPanelOperacion("deposito"));
+        botonHistorial.addEventListener("click", alternarHistorial);
+
+        // Métodos de arranque
+        actualizarSaldo();
+        renderizarHistorial();
+        entradaPin.focus();
+    </script>
+
+</body>
+</html>
